@@ -12,11 +12,12 @@
         }
     },
     "Resources": {
-      "OpenIGELB":{
+        "OpenIGELB":{
          "Type":"AWS::ElasticLoadBalancing::LoadBalancer",
          "Properties":{
            "Subnets":[
-              "subnet-0b5de50d36411a432"
+              "subnet-0b5de50d36411a432",
+              "subnet-0df12ad2cd82e702e"
            ],
             "Instances":[
                {
@@ -24,6 +25,12 @@
                },
                {
                   "Ref":"OpenIG2"
+               },
+               {
+                  "Ref":"OpenIG3"
+               },
+               {
+                  "Ref":"OpenIG4"
                }
             ],
             "Listeners":[
@@ -108,6 +115,64 @@
                   }
                 ]
             }
+        },
+        "OpenIG3": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-0b419c3a4b01d1859",
+                "KeyName": "urs-key-pair",
+                "InstanceType": {
+                    "Ref": "InstanceTypeParameter"
+                },
+                "NetworkInterfaces": [ {
+                  "AssociatePublicIpAddress": "true",
+                  "DeviceIndex": "0",
+                  "SubnetId": "subnet-0df12ad2cd82e702e",
+                  "GroupSet": ["sg-0dbbbd8416ebee1e1"]
+                } ],
+                "Tags": [{
+                    "Key": "Name",
+                    "Value": "OpenIG Instance 3"
+                  },
+                  {
+                    "Key": "Owner",
+                    "Value": "Joussyd"
+                  },
+                  {
+                    "Key": "Purpose",
+                    "Value": "POC"
+                  }
+                ]
+            }
+        },
+        "OpenIG4": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-0b419c3a4b01d1859",
+                "KeyName": "urs-key-pair",
+                "InstanceType": {
+                    "Ref": "InstanceTypeParameter"
+                },
+                "NetworkInterfaces": [ {
+                  "AssociatePublicIpAddress": "true",
+                  "DeviceIndex": "0",
+                  "SubnetId": "subnet-0df12ad2cd82e702e",
+                  "GroupSet": ["sg-0dbbbd8416ebee1e1"]
+                } ],
+                "Tags": [{
+                    "Key": "Name",
+                    "Value": "OpenIG Instance 4"
+                  },
+                  {
+                    "Key": "Owner",
+                    "Value": "Joussyd"
+                  },
+                  {
+                    "Key": "Purpose",
+                    "Value": "POC"
+                  }
+                ]
+            }
         }
     },
     "Outputs": {
@@ -118,6 +183,14 @@
       "OpenIG2" : {
         "Description": "The DNSName of the OpenIG2 Instance",
         "Value" : { "Fn::GetAtt" : [ "OpenIG2", "PublicIp" ]}
+      },
+      "OpenIG3" : {
+        "Description": "The DNSName of the OpenIG2 Instance",
+        "Value" : { "Fn::GetAtt" : [ "OpenIG3", "PublicIp" ]}
+      },
+      "OpenIG4" : {
+        "Description": "The DNSName of the OpenIG2 Instance",
+        "Value" : { "Fn::GetAtt" : [ "OpenIG4", "PublicIp" ]}
       },
       "OpenIGELB" : {
         "Description": "The DNSName of the Elastic Load Balancer",
