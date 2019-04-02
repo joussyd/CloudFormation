@@ -1,24 +1,24 @@
 {
-    "AWSTemplateFormatVersion": "2010-09-09",
-    "Parameters": {
-        "InstanceTypeParameter": {
-            "Type": "String",
-            "Default": "t2.micro",
-            "AllowedValues": [
-                "t2.micro",
-                "m1.small",
-                "m1.large"
-            ]
-        }
-    },
-    "Resources": {
-        "OpenIGELB":{
+   "AWSTemplateFormatVersion":"2010-09-09",
+   "Parameters":{
+      "InstanceTypeParameter":{
+         "Type":"String",
+         "Default":"t2.micro",
+         "AllowedValues":[
+            "t2.micro",
+            "m1.small",
+            "m1.large"
+         ]
+      }
+   },
+   "Resources":{
+      "OpenIGELB":{
          "Type":"AWS::ElasticLoadBalancing::LoadBalancer",
          "Properties":{
-           "Subnets":[
-              "subnet-0b5de50d36411a432",
-              "subnet-0df12ad2cd82e702e"
-           ],
+            "Subnets":[
+               "subnet-0b5de50d36411a432",
+               "subnet-0df12ad2cd82e702e"
+            ],
             "Instances":[
                {
                   "Ref":"OpenIG1"
@@ -58,143 +58,227 @@
             }
          }
       },
-        "OpenIG1": {
-            "Type": "AWS::EC2::Instance",
-            "Properties": {
-                "ImageId": "ami-0b419c3a4b01d1859",
-                "KeyName": "urs-key-pair",
-                "InstanceType": {
-                    "Ref": "InstanceTypeParameter"
-                },
-                "NetworkInterfaces": [ {
-                  "AssociatePublicIpAddress": "true",
-                  "DeviceIndex": "0",
-                  "SubnetId": "subnet-0b5de50d36411a432",
-                  "GroupSet": ["sg-0dbbbd8416ebee1e1"]
-                } ],
-                "Tags": [{
-                    "Key": "Name",
-                    "Value": "OpenIG Instance 1"
-                  },
-                  {
-                    "Key": "Owner",
-                    "Value": "Joussyd"
-                  },
-                  {
-                    "Key": "Purpose",
-                    "Value": "POC"
-                  }
-                ]
-            }
-        },
-        "OpenIG2": {
-            "Type": "AWS::EC2::Instance",
-            "Properties": {
-                "ImageId": "ami-0b419c3a4b01d1859",
-                "KeyName": "urs-key-pair",
-                "InstanceType": {
-                    "Ref": "InstanceTypeParameter"
-                },
-                "NetworkInterfaces": [ {
-                  "AssociatePublicIpAddress": "true",
-                  "DeviceIndex": "0",
-                  "SubnetId": "subnet-0b5de50d36411a432",
-                  "GroupSet": ["sg-0dbbbd8416ebee1e1"]
-                } ],
-                "Tags": [{
-                    "Key": "Name",
-                    "Value": "OpenIG Instance 2"
-                  },
-                  {
-                    "Key": "Owner",
-                    "Value": "Joussyd"
-                  },
-                  {
-                    "Key": "Purpose",
-                    "Value": "POC"
-                  }
-                ]
-            }
-        },
-        "OpenIG3": {
-            "Type": "AWS::EC2::Instance",
-            "Properties": {
-                "ImageId": "ami-0b419c3a4b01d1859",
-                "KeyName": "urs-key-pair",
-                "InstanceType": {
-                    "Ref": "InstanceTypeParameter"
-                },
-                "NetworkInterfaces": [ {
-                  "AssociatePublicIpAddress": "true",
-                  "DeviceIndex": "0",
-                  "SubnetId": "subnet-0df12ad2cd82e702e",
-                  "GroupSet": ["sg-0dbbbd8416ebee1e1"]
-                } ],
-                "Tags": [{
-                    "Key": "Name",
-                    "Value": "OpenIG Instance 3"
-                  },
-                  {
-                    "Key": "Owner",
-                    "Value": "Joussyd"
-                  },
-                  {
-                    "Key": "Purpose",
-                    "Value": "POC"
-                  }
-                ]
-            }
-        },
-        "OpenIG4": {
-            "Type": "AWS::EC2::Instance",
-            "Properties": {
-                "ImageId": "ami-0b419c3a4b01d1859",
-                "KeyName": "urs-key-pair",
-                "InstanceType": {
-                    "Ref": "InstanceTypeParameter"
-                },
-                "NetworkInterfaces": [ {
-                  "AssociatePublicIpAddress": "true",
-                  "DeviceIndex": "0",
-                  "SubnetId": "subnet-0df12ad2cd82e702e",
-                  "GroupSet": ["sg-0dbbbd8416ebee1e1"]
-                } ],
-                "Tags": [{
-                    "Key": "Name",
-                    "Value": "OpenIG Instance 4"
-                  },
-                  {
-                    "Key": "Owner",
-                    "Value": "Joussyd"
-                  },
-                  {
-                    "Key": "Purpose",
-                    "Value": "POC"
-                  }
-                ]
-            }
-        }
-    },
-    "Outputs": {
-      "OpenIG1" : {
-        "Description": "The DNSName of the OpenIG1 Instance",
-        "Value" : { "Fn::GetAtt" : [ "OpenIG1", "PublicIp" ]}
+      "OpenIG1":{
+         "Type":"AWS::EC2::Instance",
+         "Properties":{
+            "ImageId":"ami-0b419c3a4b01d1859",
+            "KeyName":"urs-key-pair",
+            "InstanceType":{
+               "Ref":"InstanceTypeParameter"
+            },
+            "NetworkInterfaces":[
+               {
+                  "AssociatePublicIpAddress":"true",
+                  "DeviceIndex":"0",
+                  "SubnetId":"subnet-0b5de50d36411a432",
+                  "GroupSet":[
+                     "sg-0dbbbd8416ebee1e1"
+                  ]
+               }
+            ],
+            "Tags":[
+               {
+                  "Key":"Name",
+                  "Value":"OpenIG Instance 1"
+               },
+               {
+                  "Key":"Owner",
+                  "Value":"Joussyd"
+               },
+               {
+                  "Key":"Purpose",
+                  "Value":"POC"
+               }
+            ]
+         }
       },
-      "OpenIG2" : {
-        "Description": "The DNSName of the OpenIG2 Instance",
-        "Value" : { "Fn::GetAtt" : [ "OpenIG2", "PublicIp" ]}
+      "OpenIG2":{
+         "Type":"AWS::EC2::Instance",
+         "Properties":{
+            "ImageId":"ami-0b419c3a4b01d1859",
+            "KeyName":"urs-key-pair",
+            "InstanceType":{
+               "Ref":"InstanceTypeParameter"
+            },
+            "NetworkInterfaces":[
+               {
+                  "AssociatePublicIpAddress":"true",
+                  "DeviceIndex":"0",
+                  "SubnetId":"subnet-0b5de50d36411a432",
+                  "GroupSet":[
+                     "sg-0dbbbd8416ebee1e1"
+                  ]
+               }
+            ],
+            "Tags":[
+               {
+                  "Key":"Name",
+                  "Value":"OpenIG Instance 2"
+               },
+               {
+                  "Key":"Owner",
+                  "Value":"Joussyd"
+               },
+               {
+                  "Key":"Purpose",
+                  "Value":"POC"
+               }
+            ]
+         }
       },
-      "OpenIG3" : {
-        "Description": "The DNSName of the OpenIG2 Instance",
-        "Value" : { "Fn::GetAtt" : [ "OpenIG3", "PublicIp" ]}
+      "OpenIG3":{
+         "Type":"AWS::EC2::Instance",
+         "Properties":{
+            "ImageId":"ami-0b419c3a4b01d1859",
+            "KeyName":"urs-key-pair",
+            "InstanceType":{
+               "Ref":"InstanceTypeParameter"
+            },
+            "NetworkInterfaces":[
+               {
+                  "AssociatePublicIpAddress":"true",
+                  "DeviceIndex":"0",
+                  "SubnetId":"subnet-0df12ad2cd82e702e",
+                  "GroupSet":[
+                     "sg-0dbbbd8416ebee1e1"
+                  ]
+               }
+            ],
+            "Tags":[
+               {
+                  "Key":"Name",
+                  "Value":"OpenIG Instance 3"
+               },
+               {
+                  "Key":"Owner",
+                  "Value":"Joussyd"
+               },
+               {
+                  "Key":"Purpose",
+                  "Value":"POC"
+               }
+            ]
+         }
       },
-      "OpenIG4" : {
-        "Description": "The DNSName of the OpenIG2 Instance",
-        "Value" : { "Fn::GetAtt" : [ "OpenIG4", "PublicIp" ]}
+      "OpenIG4":{
+         "Type":"AWS::EC2::Instance",
+         "Properties":{
+            "ImageId":"ami-0b419c3a4b01d1859",
+            "KeyName":"urs-key-pair",
+            "InstanceType":{
+               "Ref":"InstanceTypeParameter"
+            },
+            "NetworkInterfaces":[
+               {
+                  "AssociatePublicIpAddress":"true",
+                  "DeviceIndex":"0",
+                  "SubnetId":"subnet-0df12ad2cd82e702e",
+                  "GroupSet":[
+                     "sg-0dbbbd8416ebee1e1"
+                  ]
+               }
+            ],
+            "Tags":[
+               {
+                  "Key":"Name",
+                  "Value":"OpenIG Instance 4"
+               },
+               {
+                  "Key":"Owner",
+                  "Value":"Joussyd"
+               },
+               {
+                  "Key":"Purpose",
+                  "Value":"POC"
+               }
+            ]
+         }
       },
-      "OpenIGELB" : {
-        "Description": "The DNSName of the Elastic Load Balancer",
-        "Value" : { "Fn::GetAtt" : [ "OpenIGELB", "DNSName" ]}
+      "DbSubnetGroup":{
+        "Type" : "AWS::RDS::DBSubnetGroup",
+         "Properties" : {
+            "DBSubnetGroupDescription" : "Database Subnet",
+            "SubnetIds" : [ "subnet-0b5de50d36411a432", "subnet-0df12ad2cd82e702e" ],
+            "Tags" : [ {"Key" : "Name", "Value" : "RDS Subnet"} ]
+         }
+      },
+      "DbSecurityGroup":{
+         "Type":"AWS::RDS::DBSecurityGroup",
+         "Properties":{
+            "EC2VpcId":"vpc-010d5d22101e1ff22",
+            "DBSecurityGroupIngress":[
+               {
+                  "EC2SecurityGroupId":"sg-0dbbbd8416ebee1e1"
+               }
+            ],
+            "GroupDescription":"IDM's PostgreSQL Database Security Group"
+         }
+      },
+      "OpenIDMPostgreRDS":{
+         "Type":"AWS::RDS::DBInstance",
+         "Properties":{
+            "DBSecurityGroups":[
+               {
+                  "Ref":"DbSecurityGroup"
+               }
+            ],
+            "DBSubnetGroupName": {
+              "Ref": "DbSubnetGroup"
+            },
+            "AllocatedStorage":"5",
+            "DBInstanceClass":"db.t2.micro",
+            "Engine":"postgres",
+            "MasterUsername":"idm",
+            "MasterUserPassword":"identitymanagement"
+         },
+         "DeletionPolicy":"Snapshot"
       }
-    }
+   },
+   "Outputs":{
+      "OpenIG1":{
+         "Description":"The DNSName of the OpenIG1 Instance",
+         "Value":{
+            "Fn::GetAtt":[
+               "OpenIG1",
+               "PublicIp"
+            ]
+         }
+      },
+      "OpenIG2":{
+         "Description":"The DNSName of the OpenIG2 Instance",
+         "Value":{
+            "Fn::GetAtt":[
+               "OpenIG2",
+               "PublicIp"
+            ]
+         }
+      },
+      "OpenIG3":{
+         "Description":"The DNSName of the OpenIG2 Instance",
+         "Value":{
+            "Fn::GetAtt":[
+               "OpenIG3",
+               "PublicIp"
+            ]
+         }
+      },
+      "OpenIG4":{
+         "Description":"The DNSName of the OpenIG2 Instance",
+         "Value":{
+            "Fn::GetAtt":[
+               "OpenIG4",
+               "PublicIp"
+            ]
+         }
+      },
+      "OpenIGELB":{
+         "Description":"The DNSName of the Elastic Load Balancer",
+         "Value":{
+            "Fn::GetAtt":[
+               "OpenIGELB",
+               "DNSName"
+            ]
+         }
+      }
+   }
 }
