@@ -1,284 +1,1893 @@
 {
-   "AWSTemplateFormatVersion":"2010-09-09",
-   "Parameters":{
-      "InstanceTypeParameter":{
-         "Type":"String",
-         "Default":"t2.micro",
-         "AllowedValues":[
-            "t2.micro",
-            "m1.small",
-            "m1.large"
-         ]
-      }
-   },
-   "Resources":{
-      "OpenIGELB":{
-         "Type":"AWS::ElasticLoadBalancing::LoadBalancer",
-         "Properties":{
-            "Subnets":[
-               "subnet-0b5de50d36411a432",
-               "subnet-0df12ad2cd82e702e"
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Parameters": {
+        "KeyName": {
+            "Description": "Name of an existing EC2 KeyPair to enable SSH access to the instances",
+            "Type": "AWS::EC2::KeyPair::KeyName",
+            "ConstraintDescription": "must be the name of an existing EC2 KeyPair."
+        },
+        "InstanceType": {
+            "Description": "EC2 instance type",
+            "Type": "String",
+            "Default": "t2.micro",
+            "AllowedValues": [
+                "t1.micro",
+                "t2.nano",
+                "t2.micro",
+                "t2.small",
+                "t2.medium",
+                "t2.large",
+                "m1.small",
+                "m1.medium",
+                "m1.large",
+                "m1.xlarge",
+                "m2.xlarge",
+                "m2.2xlarge",
+                "m2.4xlarge",
+                "m3.medium",
+                "m3.large",
+                "m3.xlarge",
+                "m3.2xlarge",
+                "m4.large",
+                "m4.xlarge",
+                "m4.2xlarge",
+                "m4.4xlarge",
+                "m4.10xlarge",
+                "m4.large",
+                "m5.large",
+                "m5.xlarge",
+                "m5.2xlarge",
+                "m5.4xlarge",
+                "m5.10xlarge",
+                "m5.large",
+                "c1.medium",
+                "c1.xlarge",
+                "c3.large",
+                "c3.xlarge",
+                "c3.2xlarge",
+                "c3.4xlarge",
+                "c3.8xlarge",
+                "c4.large",
+                "c4.xlarge",
+                "c4.2xlarge",
+                "c4.4xlarge",
+                "c4.8xlarge",
+                "g2.2xlarge",
+                "g2.8xlarge",
+                "r3.large",
+                "r3.xlarge",
+                "r3.2xlarge",
+                "r3.4xlarge",
+                "r3.8xlarge",
+                "i2.xlarge",
+                "i2.2xlarge",
+                "i2.4xlarge",
+                "i2.8xlarge",
+                "d2.xlarge",
+                "d2.2xlarge",
+                "d2.4xlarge",
+                "d2.8xlarge",
+                "hi1.4xlarge",
+                "hs1.8xlarge",
+                "cr1.8xlarge",
+                "cc2.8xlarge",
+                "cg1.4xlarge"
             ],
-            "Instances":[
-               {
-                  "Ref":"OpenIG1"
-               },
-               {
-                  "Ref":"OpenIG2"
-               },
-               {
-                  "Ref":"OpenIG3"
-               },
-               {
-                  "Ref":"OpenIG4"
-               }
-            ],
-            "Listeners":[
-               {
-                  "LoadBalancerPort":"80",
-                  "InstancePort":"80",
-                  "Protocol":"HTTP"
-               }
-            ],
-            "HealthCheck":{
-               "Target":{
-                  "Fn::Join":[
-                     "",
-                     [
-                        "HTTP:",
-                        "80",
-                        "/"
-                     ]
-                  ]
-               },
-               "HealthyThreshold":"3",
-               "UnhealthyThreshold":"5",
-               "Interval":"30",
-               "Timeout":"5"
+            "ConstraintDescription": "must be a valid EC2 instance type."
+        }
+    },
+    "Resources": {
+        "PublicALB": {
+            "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+            "Properties": {
+                "Subnets": [
+                    "subnet-0b5de50d36411a432",
+                    "subnet-06b956dada62ad69f"
+                ],
+                "LoadBalancerAttributes": [
+                    {
+                        "Key": "idle_timeout.timeout_seconds",
+                        "Value": "50"
+                    }
+                ],
+                "SecurityGroups": [
+                    "sg-0dbbbd8416ebee1e1"
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Front ALB"
+                    }
+                ]
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "fbb8c3ab-1358-4ac8-8e18-920e4d97fe38"
+                }
             }
-         }
-      },
-      "OpenIG1":{
-         "Type":"AWS::EC2::Instance",
-         "Properties":{
-            "ImageId":"ami-0b419c3a4b01d1859",
-            "KeyName":"urs-key-pair",
-            "InstanceType":{
-               "Ref":"InstanceTypeParameter"
+        },
+        "PublicALBTargetGroup": {
+            "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Properties": {
+                "HealthCheckIntervalSeconds": 30,
+                "HealthCheckProtocol": "HTTP",
+                "HealthCheckTimeoutSeconds": 10,
+                "HealthyThresholdCount": 4,
+                "Matcher": {
+                    "HttpCode": "200"
+                },
+                "Name": "MyTargets",
+                "Port": 10,
+                "Protocol": "HTTP",
+                "TargetGroupAttributes": [
+                    {
+                        "Key": "deregistration_delay.timeout_seconds",
+                        "Value": "20"
+                    }
+                ],
+                "Targets": [
+                    {
+                        "Id": {
+                            "Ref": "OpenIG1"
+                        },
+                        "Port": 80
+                    },
+                    {
+                        "Id": {
+                            "Ref": "OpenIG2"
+                        },
+                        "Port": 80
+                    },
+                    {
+                        "Id": {
+                            "Ref": "OpenIG3"
+                        },
+                        "Port": 80
+                    },
+                    {
+                        "Id": {
+                            "Ref": "OpenIG4"
+                        },
+                        "Port": 80
+                    }
+                ],
+                "UnhealthyThresholdCount": 3,
+                "VpcId": "vpc-010d5d22101e1ff22",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Public ALB Target Group"
+                    }
+                ]
             },
-            "NetworkInterfaces":[
-               {
-                  "AssociatePublicIpAddress":"true",
-                  "DeviceIndex":"0",
-                  "SubnetId":"subnet-0b5de50d36411a432",
-                  "GroupSet":[
-                     "sg-0dbbbd8416ebee1e1"
-                  ]
-               }
-            ],
-            "Tags":[
-               {
-                  "Key":"Name",
-                  "Value":"OpenIG Instance 1"
-               },
-               {
-                  "Key":"Owner",
-                  "Value":"Joussyd"
-               },
-               {
-                  "Key":"Purpose",
-                  "Value":"POC"
-               }
-            ]
-         }
-      },
-      "OpenIG2":{
-         "Type":"AWS::EC2::Instance",
-         "Properties":{
-            "ImageId":"ami-0b419c3a4b01d1859",
-            "KeyName":"urs-key-pair",
-            "InstanceType":{
-               "Ref":"InstanceTypeParameter"
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "780ea5fb-8f92-4e00-904c-48a383f1cf60"
+                }
+            }
+        },
+        "PublicALBListener": {
+            "Type": "AWS::ElasticLoadBalancingV2::Listener",
+            "Properties": {
+                "DefaultActions": [
+                    {
+                        "Type": "forward",
+                        "TargetGroupArn": {
+                            "Ref": "PublicALBTargetGroup"
+                        }
+                    }
+                ],
+                "LoadBalancerArn": {
+                    "Ref": "PublicALB"
+                },
+                "Port": "80",
+                "Protocol": "HTTP"
             },
-            "NetworkInterfaces":[
-               {
-                  "AssociatePublicIpAddress":"true",
-                  "DeviceIndex":"0",
-                  "SubnetId":"subnet-0b5de50d36411a432",
-                  "GroupSet":[
-                     "sg-0dbbbd8416ebee1e1"
-                  ]
-               }
-            ],
-            "Tags":[
-               {
-                  "Key":"Name",
-                  "Value":"OpenIG Instance 2"
-               },
-               {
-                  "Key":"Owner",
-                  "Value":"Joussyd"
-               },
-               {
-                  "Key":"Purpose",
-                  "Value":"POC"
-               }
-            ]
-         }
-      },
-      "OpenIG3":{
-         "Type":"AWS::EC2::Instance",
-         "Properties":{
-            "ImageId":"ami-0b419c3a4b01d1859",
-            "KeyName":"urs-key-pair",
-            "InstanceType":{
-               "Ref":"InstanceTypeParameter"
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "cc87c374-d395-4c55-93a8-117aaa988f95"
+                }
+            }
+        },
+        "OpenIG1": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-0b419c3a4b01d1859",
+                "KeyName": "urs-key-pair",
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "SubnetId": "subnet-0b5de50d36411a432",
+                        "GroupSet": [
+                            "sg-0c9c7cda800caa07e"
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenIG Instance 1"
+                    },
+                    {
+                        "Key": "Owner",
+                        "Value": "Joussyd"
+                    },
+                    {
+                        "Key": "Purpose",
+                        "Value": "POC"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\n  yum update -y\n  yum upgrade -y\n  yum install -y httpd\n  systemctl start httpd\n  systemctl enable httpd\n  echo \"<h1>Joneeellll</h1>\" > /var/www/html/index.html\t\n"
+                    }
+                }
             },
-            "NetworkInterfaces":[
-               {
-                  "AssociatePublicIpAddress":"true",
-                  "DeviceIndex":"0",
-                  "SubnetId":"subnet-0df12ad2cd82e702e",
-                  "GroupSet":[
-                     "sg-0dbbbd8416ebee1e1"
-                  ]
-               }
-            ],
-            "Tags":[
-               {
-                  "Key":"Name",
-                  "Value":"OpenIG Instance 3"
-               },
-               {
-                  "Key":"Owner",
-                  "Value":"Joussyd"
-               },
-               {
-                  "Key":"Purpose",
-                  "Value":"POC"
-               }
-            ]
-         }
-      },
-      "OpenIG4":{
-         "Type":"AWS::EC2::Instance",
-         "Properties":{
-            "ImageId":"ami-0b419c3a4b01d1859",
-            "KeyName":"urs-key-pair",
-            "InstanceType":{
-               "Ref":"InstanceTypeParameter"
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "86436f8b-722d-43e9-b577-1724a29053d6"
+                }
+            }
+        },
+        "OpenIG2": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-0b419c3a4b01d1859",
+                "KeyName": "urs-key-pair",
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "SubnetId": "subnet-0df12ad2cd82e702e",
+                        "GroupSet": [
+                            "sg-0c9c7cda800caa07e"
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenIG Instance 2"
+                    },
+                    {
+                        "Key": "Owner",
+                        "Value": "Joussyd"
+                    },
+                    {
+                        "Key": "Purpose",
+                        "Value": "POC"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\n  yum update -y\n  yum upgrade -y\n  yum install -y httpd\n  systemctl start httpd\n  systemctl enable httpd\n  echo \"<h1>Joneeellll</h1>\" > /var/www/html/index.html\t\n"
+                    }
+                }
             },
-            "NetworkInterfaces":[
-               {
-                  "AssociatePublicIpAddress":"true",
-                  "DeviceIndex":"0",
-                  "SubnetId":"subnet-0df12ad2cd82e702e",
-                  "GroupSet":[
-                     "sg-0dbbbd8416ebee1e1"
-                  ]
-               }
-            ],
-            "Tags":[
-               {
-                  "Key":"Name",
-                  "Value":"OpenIG Instance 4"
-               },
-               {
-                  "Key":"Owner",
-                  "Value":"Joussyd"
-               },
-               {
-                  "Key":"Purpose",
-                  "Value":"POC"
-               }
-            ]
-         }
-      },
-      "DbSubnetGroup":{
-        "Type" : "AWS::RDS::DBSubnetGroup",
-         "Properties" : {
-            "DBSubnetGroupDescription" : "Database Subnet",
-            "SubnetIds" : [ "subnet-0b5de50d36411a432", "subnet-0df12ad2cd82e702e" ],
-            "Tags" : [ {"Key" : "Name", "Value" : "RDS Subnet"} ]
-         }
-      },
-      "DbSecurityGroup":{
-         "Type":"AWS::RDS::DBSecurityGroup",
-         "Properties":{
-            "EC2VpcId":"vpc-010d5d22101e1ff22",
-            "DBSecurityGroupIngress":[
-               {
-                  "EC2SecurityGroupId":"sg-0dbbbd8416ebee1e1"
-               }
-            ],
-            "GroupDescription":"IDM's PostgreSQL Database Security Group"
-         }
-      },
-      "OpenIDMPostgreRDS":{
-         "Type":"AWS::RDS::DBInstance",
-         "Properties":{
-            "DBSecurityGroups":[
-               {
-                  "Ref":"DbSecurityGroup"
-               }
-            ],
-            "DBSubnetGroupName": {
-              "Ref": "DbSubnetGroup"
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "b36b2d37-e414-47f3-8efd-fd53ce4071e5"
+                }
+            }
+        },
+        "OpenIG3": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-0b419c3a4b01d1859",
+                "KeyName": "urs-key-pair",
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "SubnetId": "subnet-0df12ad2cd82e702e",
+                        "GroupSet": [
+                            "sg-0c9c7cda800caa07e"
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenIG Instance 3"
+                    },
+                    {
+                        "Key": "Owner",
+                        "Value": "Joussyd"
+                    },
+                    {
+                        "Key": "Purpose",
+                        "Value": "POC"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\n  yum update -y\n  yum upgrade -y\n  yum install -y httpd\n  systemctl start httpd\n  systemctl enable httpd\n  echo \"<h1>Joneeellll</h1>\" > /var/www/html/index.html\t\n"
+                    }
+                }
             },
-            "AllocatedStorage":"5",
-            "DBInstanceClass":"db.t2.micro",
-            "Engine":"postgres",
-            "MasterUsername":"idm",
-            "MasterUserPassword":"identitymanagement"
-         },
-         "DeletionPolicy":"Snapshot"
-      }
-   },
-   "Outputs":{
-      "OpenIG1":{
-         "Description":"The DNSName of the OpenIG1 Instance",
-         "Value":{
-            "Fn::GetAtt":[
-               "OpenIG1",
-               "PublicIp"
-            ]
-         }
-      },
-      "OpenIG2":{
-         "Description":"The DNSName of the OpenIG2 Instance",
-         "Value":{
-            "Fn::GetAtt":[
-               "OpenIG2",
-               "PublicIp"
-            ]
-         }
-      },
-      "OpenIG3":{
-         "Description":"The DNSName of the OpenIG2 Instance",
-         "Value":{
-            "Fn::GetAtt":[
-               "OpenIG3",
-               "PublicIp"
-            ]
-         }
-      },
-      "OpenIG4":{
-         "Description":"The DNSName of the OpenIG2 Instance",
-         "Value":{
-            "Fn::GetAtt":[
-               "OpenIG4",
-               "PublicIp"
-            ]
-         }
-      },
-      "OpenIGELB":{
-         "Description":"The DNSName of the Elastic Load Balancer",
-         "Value":{
-            "Fn::GetAtt":[
-               "OpenIGELB",
-               "DNSName"
-            ]
-         }
-      }
-   }
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "f5f6125e-88f5-4fd6-ac6b-cde39ccc4ca7"
+                }
+            }
+        },
+        "OpenIG4": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-0b419c3a4b01d1859",
+                "KeyName": "urs-key-pair",
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "SubnetId": "subnet-0b5de50d36411a432",
+                        "GroupSet": [
+                            "sg-0c9c7cda800caa07e"
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenIG Instance 4"
+                    },
+                    {
+                        "Key": "Owner",
+                        "Value": "Joussyd"
+                    },
+                    {
+                        "Key": "Purpose",
+                        "Value": "POC"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\n  yum update -y\n  yum upgrade -y\n  yum install -y httpd\n  systemctl start httpd\n  systemctl enable httpd\n  echo \"<h1>Joneeellll</h1>\" > /var/www/html/index.html\t\n"
+                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "ab4812bd-d8f9-40a2-a1be-bdd8082e89b1"
+                }
+            }
+        },
+        "OpenAMALB": {
+            "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+            "Properties": {
+                "Subnets": [
+                    "subnet-0b5de50d36411a432",
+                    "subnet-06b956dada62ad69f"
+                ],
+                "LoadBalancerAttributes": [
+                    {
+                        "Key": "idle_timeout.timeout_seconds",
+                        "Value": "50"
+                    }
+                ],
+                "SecurityGroups": [
+                    "sg-0f7039297da9b505a"
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenAM ALB"
+                    }
+                ]
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "7c81d566-39d9-4ad2-80ee-ed50a6cc151c"
+                }
+            }
+        },
+        "OpenAMALBTargetGroup": {
+            "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Properties": {
+                "HealthCheckIntervalSeconds": 30,
+                "HealthCheckProtocol": "HTTP",
+                "HealthCheckTimeoutSeconds": 10,
+                "HealthyThresholdCount": 4,
+                "Matcher": {
+                    "HttpCode": "200"
+                },
+                "Name": "OpenAMALBTargetGroup",
+                "Port": 10,
+                "Protocol": "HTTP",
+                "TargetGroupAttributes": [
+                    {
+                        "Key": "deregistration_delay.timeout_seconds",
+                        "Value": "20"
+                    }
+                ],
+                "Targets": [
+                    {
+                        "Id": {
+                            "Ref": "OpenAM1"
+                        },
+                        "Port": 80
+                    },
+                    {
+                        "Id": {
+                            "Ref": "OpenAM2"
+                        },
+                        "Port": 80
+                    },
+                    {
+                        "Id": {
+                            "Ref": "OpenAM3"
+                        },
+                        "Port": 80
+                    },
+                    {
+                        "Id": {
+                            "Ref": "OpenAM4"
+                        },
+                        "Port": 80
+                    }
+                ],
+                "UnhealthyThresholdCount": 3,
+                "VpcId": "vpc-010d5d22101e1ff22",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenAM ALB Target Group"
+                    }
+                ]
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "a009ac5e-4032-463a-ba75-3b985312e64f"
+                }
+            }
+        },
+        "OpenAMALBListener": {
+            "Type": "AWS::ElasticLoadBalancingV2::Listener",
+            "Properties": {
+                "DefaultActions": [
+                    {
+                        "Type": "forward",
+                        "TargetGroupArn": {
+                            "Ref": "OpenAMALBTargetGroup"
+                        }
+                    }
+                ],
+                "LoadBalancerArn": {
+                    "Ref": "OpenAMALB"
+                },
+                "Port": "80",
+                "Protocol": "HTTP"
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "afac2b50-fd95-45fd-89ea-067d4a8cac86"
+                }
+            }
+        },
+        "OpenAM1": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-0b419c3a4b01d1859",
+                "KeyName": "urs-key-pair",
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "SubnetId": "subnet-0b5de50d36411a432",
+                        "GroupSet": [
+                            "sg-0e65f910d63107e0b"
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenAM Instance 1"
+                    },
+                    {
+                        "Key": "Owner",
+                        "Value": "Joussyd"
+                    },
+                    {
+                        "Key": "Purpose",
+                        "Value": "POC"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\n  yum update -y\n  yum upgrade -y\n  yum install -y httpd\n  systemctl start httpd\n  systemctl enable httpd\n  echo \"<h1>Joneeellll</h1>\" > /var/www/html/index.html\t\n"
+                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "7818b512-d1bb-426f-be29-666b59cfc59a"
+                }
+            }
+        },
+        "OpenAM2": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-0b419c3a4b01d1859",
+                "KeyName": "urs-key-pair",
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "SubnetId": "subnet-0df12ad2cd82e702e",
+                        "GroupSet": [
+                            "sg-0e65f910d63107e0b"
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenAM Instance 2"
+                    },
+                    {
+                        "Key": "Owner",
+                        "Value": "Joussyd"
+                    },
+                    {
+                        "Key": "Purpose",
+                        "Value": "POC"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\n  yum update -y\n  yum upgrade -y\n  yum install -y httpd\n  systemctl start httpd\n  systemctl enable httpd\n  echo \"<h1>Joneeellll</h1>\" > /var/www/html/index.html\t\n"
+                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "43b050ca-57d8-48f7-b534-2ac26e72d695"
+                }
+            }
+        },
+        "OpenAM3": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-0b419c3a4b01d1859",
+                "KeyName": "urs-key-pair",
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "SubnetId": "subnet-0df12ad2cd82e702e",
+                        "GroupSet": [
+                            "sg-0e65f910d63107e0b"
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenAM Instance 3"
+                    },
+                    {
+                        "Key": "Owner",
+                        "Value": "Joussyd"
+                    },
+                    {
+                        "Key": "Purpose",
+                        "Value": "POC"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\n  yum update -y\n  yum upgrade -y\n  yum install -y httpd\n  systemctl start httpd\n  systemctl enable httpd\n  echo \"<h1>Joneeellll</h1>\" > /var/www/html/index.html\t\n"
+                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "4d9681cc-7fd0-40e3-8037-8d0393c82731"
+                }
+            }
+        },
+        "OpenAM4": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-0b419c3a4b01d1859",
+                "KeyName": "urs-key-pair",
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "SubnetId": "subnet-0b5de50d36411a432",
+                        "GroupSet": [
+                            "sg-0e65f910d63107e0b"
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenAM Instance 4"
+                    },
+                    {
+                        "Key": "Owner",
+                        "Value": "Joussyd"
+                    },
+                    {
+                        "Key": "Purpose",
+                        "Value": "POC"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\n  yum update -y\n  yum upgrade -y\n  yum install -y httpd\n  systemctl start httpd\n  systemctl enable httpd\n  echo \"<h1>Joneeellll</h1>\" > /var/www/html/index.html\t\n"
+                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "1f52aa0e-6922-42ea-8161-032fd2f2e129"
+                }
+            }
+        },
+        "OpenIDMALB": {
+            "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+            "Properties": {
+                "Subnets": [
+                    "subnet-0b5de50d36411a432",
+                    "subnet-06b956dada62ad69f"
+                ],
+                "LoadBalancerAttributes": [
+                    {
+                        "Key": "idle_timeout.timeout_seconds",
+                        "Value": "50"
+                    }
+                ],
+                "SecurityGroups": [
+                    "sg-0f7039297da9b505a"
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenIDM ALB"
+                    }
+                ]
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "c2d0291b-0b00-4476-9564-5a8cd38f1a7f"
+                }
+            }
+        },
+        "OpenIDMALBTargetGroup": {
+            "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Properties": {
+                "HealthCheckIntervalSeconds": 30,
+                "HealthCheckProtocol": "HTTP",
+                "HealthCheckTimeoutSeconds": 10,
+                "HealthyThresholdCount": 4,
+                "Matcher": {
+                    "HttpCode": "200"
+                },
+                "Name": "OpenIDMALBTargetGroup",
+                "Port": 10,
+                "Protocol": "HTTP",
+                "TargetGroupAttributes": [
+                    {
+                        "Key": "deregistration_delay.timeout_seconds",
+                        "Value": "20"
+                    }
+                ],
+                "Targets": [
+                    {
+                        "Id": {
+                            "Ref": "OpenIDM1"
+                        },
+                        "Port": 80
+                    },
+                    {
+                        "Id": {
+                            "Ref": "OpenIDM2"
+                        },
+                        "Port": 80
+                    },
+                    {
+                        "Id": {
+                            "Ref": "OpenIDM3"
+                        },
+                        "Port": 80
+                    },
+                    {
+                        "Id": {
+                            "Ref": "OpenIDM4"
+                        },
+                        "Port": 80
+                    }
+                ],
+                "UnhealthyThresholdCount": 3,
+                "VpcId": "vpc-010d5d22101e1ff22",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenIDM ALB Target Group"
+                    }
+                ]
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "a92297fc-855e-48fe-a611-82978b4cfd77"
+                }
+            }
+        },
+        "OpenIDMALBListener": {
+            "Type": "AWS::ElasticLoadBalancingV2::Listener",
+            "Properties": {
+                "DefaultActions": [
+                    {
+                        "Type": "forward",
+                        "TargetGroupArn": {
+                            "Ref": "OpenIDMALBTargetGroup"
+                        }
+                    }
+                ],
+                "LoadBalancerArn": {
+                    "Ref": "OpenIDMALB"
+                },
+                "Port": "80",
+                "Protocol": "HTTP"
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "21147fbf-a389-491e-a001-438d0e55b3b5"
+                }
+            }
+        },
+        "OpenIDM1": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-0b419c3a4b01d1859",
+                "KeyName": "urs-key-pair",
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "SubnetId": "subnet-0b5de50d36411a432",
+                        "GroupSet": [
+                            "sg-05dbbdf6462823fae"
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenIDM Instance 1"
+                    },
+                    {
+                        "Key": "Owner",
+                        "Value": "Joussyd"
+                    },
+                    {
+                        "Key": "Purpose",
+                        "Value": "POC"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\n  yum update -y\n  yum upgrade -y\n  yum install -y httpd\n  systemctl start httpd\n  systemctl enable httpd\n  echo \"<h1>Joneeellll</h1>\" > /var/www/html/index.html\t\n"
+                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "b425940b-39c6-404e-9489-18ca9b1eca9c"
+                }
+            }
+        },
+        "OpenIDM2": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-0b419c3a4b01d1859",
+                "KeyName": "urs-key-pair",
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "SubnetId": "subnet-0df12ad2cd82e702e",
+                        "GroupSet": [
+                            "sg-05dbbdf6462823fae"
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenIDM Instance 2"
+                    },
+                    {
+                        "Key": "Owner",
+                        "Value": "Joussyd"
+                    },
+                    {
+                        "Key": "Purpose",
+                        "Value": "POC"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\n  yum update -y\n  yum upgrade -y\n  yum install -y httpd\n  systemctl start httpd\n  systemctl enable httpd\n  echo \"<h1>Joneeellll</h1>\" > /var/www/html/index.html\t\n"
+                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "76818caf-f213-4990-b4a1-b3bd57c47fdd"
+                }
+            }
+        },
+        "OpenIDM3": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-0b419c3a4b01d1859",
+                "KeyName": "urs-key-pair",
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "SubnetId": "subnet-0df12ad2cd82e702e",
+                        "GroupSet": [
+                            "sg-05dbbdf6462823fae"
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenIDM Instance 3"
+                    },
+                    {
+                        "Key": "Owner",
+                        "Value": "Joussyd"
+                    },
+                    {
+                        "Key": "Purpose",
+                        "Value": "POC"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\n  yum update -y\n  yum upgrade -y\n  yum install -y httpd\n  systemctl start httpd\n  systemctl enable httpd\n  echo \"<h1>Joneeellll</h1>\" > /var/www/html/index.html\t\n"
+                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "3223b87f-1526-422b-a73a-b52761fb8b8f"
+                }
+            }
+        },
+        "OpenIDM4": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-0b419c3a4b01d1859",
+                "KeyName": "urs-key-pair",
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "SubnetId": "subnet-0b5de50d36411a432",
+                        "GroupSet": [
+                            "sg-05dbbdf6462823fae"
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenIDM Instance 4"
+                    },
+                    {
+                        "Key": "Owner",
+                        "Value": "Joussyd"
+                    },
+                    {
+                        "Key": "Purpose",
+                        "Value": "POC"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\n  yum update -y\n  yum upgrade -y\n  yum install -y httpd\n  systemctl start httpd\n  systemctl enable httpd\n  echo \"<h1>Joneeellll</h1>\" > /var/www/html/index.html\t\n"
+                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "4449aa7b-a6ca-4a7b-b6b5-dcc0fea11e00"
+                }
+            }
+        },
+        "OpenDJIS1": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-0b419c3a4b01d1859",
+                "KeyName": "urs-key-pair",
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "SubnetId": "subnet-0b5de50d36411a432",
+                        "GroupSet": [
+                            "sg-0866c093943b70b27"
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenDJIS Instance 1"
+                    },
+                    {
+                        "Key": "Owner",
+                        "Value": "Joussyd"
+                    },
+                    {
+                        "Key": "Purpose",
+                        "Value": "POC"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\n  yum update -y\n  yum upgrade -y\n  yum install -y httpd\n  systemctl start httpd\n  systemctl enable httpd\n  echo \"<h1>Joneeellll</h1>\" > /var/www/html/index.html\t\n"
+                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "c2b2ede2-c900-4c34-9f20-3b6da051c91a"
+                }
+            }
+        },
+        "OpenDJIS2": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-0b419c3a4b01d1859",
+                "KeyName": "urs-key-pair",
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "SubnetId": "subnet-0df12ad2cd82e702e",
+                        "GroupSet": [
+                            "sg-0866c093943b70b27"
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenDJIS Instance 2"
+                    },
+                    {
+                        "Key": "Owner",
+                        "Value": "Joussyd"
+                    },
+                    {
+                        "Key": "Purpose",
+                        "Value": "POC"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\n  yum update -y\n  yum upgrade -y\n  yum install -y httpd\n  systemctl start httpd\n  systemctl enable httpd\n  echo \"<h1>Joneeellll</h1>\" > /var/www/html/index.html\t\n"
+                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "c5ddbe08-c75c-4be7-a935-5e5ace6dfeb0"
+                }
+            }
+        },
+        "OpenDJIS3": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-0b419c3a4b01d1859",
+                "KeyName": "urs-key-pair",
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "SubnetId": "subnet-0df12ad2cd82e702e",
+                        "GroupSet": [
+                            "sg-0866c093943b70b27"
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenDJIS Instance 3"
+                    },
+                    {
+                        "Key": "Owner",
+                        "Value": "Joussyd"
+                    },
+                    {
+                        "Key": "Purpose",
+                        "Value": "POC"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\n  yum update -y\n  yum upgrade -y\n  yum install -y httpd\n  systemctl start httpd\n  systemctl enable httpd\n  echo \"<h1>Joneeellll</h1>\" > /var/www/html/index.html\t\n"
+                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "a58a4ebf-fb7a-48be-b565-3cff1c914d2c"
+                }
+            }
+        },
+        "OpenDJIS4": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-0b419c3a4b01d1859",
+                "KeyName": "urs-key-pair",
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "SubnetId": "subnet-0b5de50d36411a432",
+                        "GroupSet": [
+                            "sg-0866c093943b70b27"
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenDJIS Instance 4"
+                    },
+                    {
+                        "Key": "Owner",
+                        "Value": "Joussyd"
+                    },
+                    {
+                        "Key": "Purpose",
+                        "Value": "POC"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\n  yum update -y\n  yum upgrade -y\n  yum install -y httpd\n  systemctl start httpd\n  systemctl enable httpd\n  echo \"<h1>Joneeellll</h1>\" > /var/www/html/index.html\t\n"
+                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "83c048c6-9dab-4dd0-8a0c-b06ddef8478a"
+                }
+            }
+        },
+        "OpenDJCS1": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-0b419c3a4b01d1859",
+                "KeyName": "urs-key-pair",
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "SubnetId": "subnet-0b5de50d36411a432",
+                        "GroupSet": [
+                            "sg-0866c093943b70b27"
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenDJCS Instance 1"
+                    },
+                    {
+                        "Key": "Owner",
+                        "Value": "Joussyd"
+                    },
+                    {
+                        "Key": "Purpose",
+                        "Value": "POC"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\n  yum update -y\n  yum upgrade -y\n  yum install -y httpd\n  systemctl start httpd\n  systemctl enable httpd\n  echo \"<h1>Joneeellll</h1>\" > /var/www/html/index.html\t\n"
+                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "71886266-3c16-426c-ba3b-f636fd1baada"
+                }
+            }
+        },
+        "OpenDJCS2": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-0b419c3a4b01d1859",
+                "KeyName": "urs-key-pair",
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "SubnetId": "subnet-0df12ad2cd82e702e",
+                        "GroupSet": [
+                            "sg-0866c093943b70b27"
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenDJCS Instance 2"
+                    },
+                    {
+                        "Key": "Owner",
+                        "Value": "Joussyd"
+                    },
+                    {
+                        "Key": "Purpose",
+                        "Value": "POC"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\n  yum update -y\n  yum upgrade -y\n  yum install -y httpd\n  systemctl start httpd\n  systemctl enable httpd\n  echo \"<h1>Joneeellll</h1>\" > /var/www/html/index.html\t\n"
+                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "a7a2949e-3eb0-4490-86d9-2185d8d3fe49"
+                }
+            }
+        },
+        "OpenDJCS3": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-0b419c3a4b01d1859",
+                "KeyName": "urs-key-pair",
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "SubnetId": "subnet-0df12ad2cd82e702e",
+                        "GroupSet": [
+                            "sg-0866c093943b70b27"
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenDJCS Instance 3"
+                    },
+                    {
+                        "Key": "Owner",
+                        "Value": "Joussyd"
+                    },
+                    {
+                        "Key": "Purpose",
+                        "Value": "POC"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\n  yum update -y\n  yum upgrade -y\n  yum install -y httpd\n  systemctl start httpd\n  systemctl enable httpd\n  echo \"<h1>Joneeellll</h1>\" > /var/www/html/index.html\t\n"
+                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "50c6bd41-326b-424c-a55a-64d890b56f70"
+                }
+            }
+        },
+        "OpenDJCS4": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-0b419c3a4b01d1859",
+                "KeyName": "urs-key-pair",
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "SubnetId": "subnet-0b5de50d36411a432",
+                        "GroupSet": [
+                            "sg-0866c093943b70b27"
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenDJCS Instance 4"
+                    },
+                    {
+                        "Key": "Owner",
+                        "Value": "Joussyd"
+                    },
+                    {
+                        "Key": "Purpose",
+                        "Value": "POC"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\n  yum update -y\n  yum upgrade -y\n  yum install -y httpd\n  systemctl start httpd\n  systemctl enable httpd\n  echo \"<h1>Joneeellll</h1>\" > /var/www/html/index.html\t\n"
+                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "fe707be7-afde-4443-8847-2d38b536dc4f"
+                }
+            }
+        },
+        "OpenDJTS1": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-0b419c3a4b01d1859",
+                "KeyName": "urs-key-pair",
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "SubnetId": "subnet-0b5de50d36411a432",
+                        "GroupSet": [
+                            "sg-0866c093943b70b27"
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenDJTS Instance 1"
+                    },
+                    {
+                        "Key": "Owner",
+                        "Value": "Joussyd"
+                    },
+                    {
+                        "Key": "Purpose",
+                        "Value": "POC"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\n  yum update -y\n  yum upgrade -y\n  yum install -y httpd\n  systemctl start httpd\n  systemctl enable httpd\n  echo \"<h1>Joneeellll</h1>\" > /var/www/html/index.html\t\n"
+                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "2e7ed9e9-6ad5-4724-9d8c-34a869a9081e"
+                }
+            }
+        },
+        "OpenDJTS2": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-0b419c3a4b01d1859",
+                "KeyName": "urs-key-pair",
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "SubnetId": "subnet-0df12ad2cd82e702e",
+                        "GroupSet": [
+                            "sg-0866c093943b70b27"
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenDJTS Instance 2"
+                    },
+                    {
+                        "Key": "Owner",
+                        "Value": "Joussyd"
+                    },
+                    {
+                        "Key": "Purpose",
+                        "Value": "POC"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\n  yum update -y\n  yum upgrade -y\n  yum install -y httpd\n  systemctl start httpd\n  systemctl enable httpd\n  echo \"<h1>Joneeellll</h1>\" > /var/www/html/index.html\t\n"
+                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "5575cbbf-1b7c-43e1-88df-55509c73fac9"
+                }
+            }
+        },
+        "OpenDJTS3": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-0b419c3a4b01d1859",
+                "KeyName": "urs-key-pair",
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "SubnetId": "subnet-0df12ad2cd82e702e",
+                        "GroupSet": [
+                            "sg-0866c093943b70b27"
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenDJTS Instance 3"
+                    },
+                    {
+                        "Key": "Owner",
+                        "Value": "Joussyd"
+                    },
+                    {
+                        "Key": "Purpose",
+                        "Value": "POC"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\n  yum update -y\n  yum upgrade -y\n  yum install -y httpd\n  systemctl start httpd\n  systemctl enable httpd\n  echo \"<h1>Joneeellll</h1>\" > /var/www/html/index.html\t\n"
+                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "63603773-938c-4705-8b10-b57f9dd46bfa"
+                }
+            }
+        },
+        "OpenDJTS4": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": "ami-0b419c3a4b01d1859",
+                "KeyName": "urs-key-pair",
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true",
+                        "DeviceIndex": "0",
+                        "SubnetId": "subnet-0b5de50d36411a432",
+                        "GroupSet": [
+                            "sg-0866c093943b70b27"
+                        ]
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenDJTS Instance 4"
+                    },
+                    {
+                        "Key": "Owner",
+                        "Value": "Joussyd"
+                    },
+                    {
+                        "Key": "Purpose",
+                        "Value": "POC"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\n  yum update -y\n  yum upgrade -y\n  yum install -y httpd\n  systemctl start httpd\n  systemctl enable httpd\n  echo \"<h1>Joneeellll</h1>\" > /var/www/html/index.html\t\n"
+                    }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "ae957419-6b96-4cad-83f2-8ed22f02ac26"
+                }
+            }
+        }
+    },
+    "Outputs": {
+        "PublicALB": {
+            "Description": "The DNSName of the PublicALB",
+            "Value": {
+                "Fn::GetAtt": [
+                    "PublicALB",
+                    "DNSName"
+                ]
+            }
+        }
+    },
+    "Metadata": {
+        "AWS::CloudFormation::Designer": {
+            "1f52aa0e-6922-42ea-8161-032fd2f2e129": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": -80,
+                    "y": 10
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "4d9681cc-7fd0-40e3-8037-8d0393c82731": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": -80,
+                    "y": 90
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "43b050ca-57d8-48f7-b534-2ac26e72d695": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": -80,
+                    "y": 190
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "7818b512-d1bb-426f-be29-666b59cfc59a": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": -80,
+                    "y": 270
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "a009ac5e-4032-463a-ba75-3b985312e64f": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 120,
+                    "y": 140
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "7c81d566-39d9-4ad2-80ee-ed50a6cc151c": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 120,
+                    "y": 420
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "afac2b50-fd95-45fd-89ea-067d4a8cac86": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 120,
+                    "y": 320
+                },
+                "z": 1,
+                "embeds": [],
+                "isassociatedwith": [
+                    "7c81d566-39d9-4ad2-80ee-ed50a6cc151c"
+                ]
+            },
+            "ab4812bd-d8f9-40a2-a1be-bdd8082e89b1": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 480,
+                    "y": 280
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "f5f6125e-88f5-4fd6-ac6b-cde39ccc4ca7": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 480,
+                    "y": 200
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "b36b2d37-e414-47f3-8efd-fd53ce4071e5": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 480,
+                    "y": 90
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "86436f8b-722d-43e9-b577-1724a29053d6": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 480,
+                    "y": 10
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "780ea5fb-8f92-4e00-904c-48a383f1cf60": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 220,
+                    "y": 140
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "fbb8c3ab-1358-4ac8-8e18-920e4d97fe38": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 220,
+                    "y": 420
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "cc87c374-d395-4c55-93a8-117aaa988f95": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 220,
+                    "y": 320
+                },
+                "z": 1,
+                "embeds": [],
+                "isassociatedwith": [
+                    "fbb8c3ab-1358-4ac8-8e18-920e4d97fe38"
+                ]
+            },
+            "ae957419-6b96-4cad-83f2-8ed22f02ac26": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 830,
+                    "y": 90
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "63603773-938c-4705-8b10-b57f9dd46bfa": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 760,
+                    "y": 90
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "5575cbbf-1b7c-43e1-88df-55509c73fac9": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 690,
+                    "y": 90
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "2e7ed9e9-6ad5-4724-9d8c-34a869a9081e": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 620,
+                    "y": 90
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "fe707be7-afde-4443-8847-2d38b536dc4f": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 830,
+                    "y": 190
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "50c6bd41-326b-424c-a55a-64d890b56f70": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 760,
+                    "y": 190
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "a7a2949e-3eb0-4490-86d9-2185d8d3fe49": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 690,
+                    "y": 190
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "71886266-3c16-426c-ba3b-f636fd1baada": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 620,
+                    "y": 190
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "83c048c6-9dab-4dd0-8a0c-b06ddef8478a": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 830,
+                    "y": 290
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "a58a4ebf-fb7a-48be-b565-3cff1c914d2c": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 760,
+                    "y": 290
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "c5ddbe08-c75c-4be7-a935-5e5ace6dfeb0": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 690,
+                    "y": 290
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "c2b2ede2-c900-4c34-9f20-3b6da051c91a": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 620,
+                    "y": 290
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "4449aa7b-a6ca-4a7b-b6b5-dcc0fea11e00": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 720,
+                    "y": 590
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "3223b87f-1526-422b-a73a-b52761fb8b8f": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 720,
+                    "y": 670
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "76818caf-f213-4990-b4a1-b3bd57c47fdd": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 720,
+                    "y": 510
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "a92297fc-855e-48fe-a611-82978b4cfd77": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 280,
+                    "y": 540
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "c2d0291b-0b00-4476-9564-5a8cd38f1a7f": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 280,
+                    "y": 700
+                },
+                "z": 1,
+                "embeds": []
+            },
+            "21147fbf-a389-491e-a001-438d0e55b3b5": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 80,
+                    "y": 620
+                },
+                "z": 1,
+                "embeds": [],
+                "isassociatedwith": [
+                    "c2d0291b-0b00-4476-9564-5a8cd38f1a7f"
+                ]
+            },
+            "b425940b-39c6-404e-9489-18ca9b1eca9c": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 720,
+                    "y": 430
+                },
+                "z": 1,
+                "embeds": []
+            }
+        }
+    }
 }
